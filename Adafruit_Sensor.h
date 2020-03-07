@@ -70,31 +70,12 @@ typedef enum {
 } sensors_type_t;
 
 /** struct sensors_vec_s is used to return a vector in a common format. */
-typedef struct {
-  union {
-    float v[3]; ///< 3D vector elements
-    struct {
-      float x; ///< X component of vector
-      float y; ///< Y component of vector
-      float z; ///< Z component of vector
-    };         ///< Struct for holding XYZ component
-    /* Orientation sensors */
-    struct {
-      float roll; /**< Rotation around the longitudinal axis (the plane body, 'X
-                     axis'). Roll is positive and increasing when moving
-                     downward. -90 degrees <= roll <= 90 degrees */
-      float pitch;   /**< Rotation around the lateral axis (the wing span, 'Y
-                        axis'). Pitch is positive and increasing when moving
-                        upwards. -180 degrees <= pitch <= 180 degrees) */
-      float heading; /**< Angle between the longitudinal axis (the plane body)
-                        and magnetic north, measured clockwise when viewing from
-                        the top of the device. 0-359 degrees */
-    };               ///< Struct for holding roll/pitch/heading
-  };                 ///< Union that can hold 3D vector array, XYZ components or
-                     ///< roll/pitch/heading
-  int8_t status;     ///< Status byte
-  uint8_t reserved[3]; ///< Reserved
+typedef struct triplet {
+  float x; ///< X component of vector
+  float y; ///< Y component of vector
+  float z; ///< Z component of vector
 } sensors_vec_t;
+static_assert(sizeof(sensors_vec_t) == 3 * sizeof(float), "");
 
 /** struct sensors_color_s is used to return color data in a common format. */
 typedef struct {
@@ -109,34 +90,6 @@ typedef struct {
   };             ///< Union of various ways to describe RGB colorspace
   uint32_t rgba; /**< 24-bit RGBA value */
 } sensors_color_t;
-
-/* Sensor event (36 bytes) */
-/** struct sensor_event_s is used to provide a single sensor event in a common
- * format. */
-typedef struct {
-  int32_t version;   /**< must be sizeof(struct sensors_event_t) */
-  int32_t sensor_id; /**< unique sensor identifier */
-  int32_t type;      /**< sensor type */
-  int32_t reserved0; /**< reserved */
-  int32_t timestamp; /**< time is in milliseconds */
-  union {
-    float data[4];              ///< Raw data
-    sensors_vec_t acceleration; /**< acceleration values are in meter per second
-                                   per second (m/s^2) */
-    sensors_vec_t
-        magnetic; /**< magnetic vector values are in micro-Tesla (uT) */
-    sensors_vec_t orientation; /**< orientation values are in degrees */
-    sensors_vec_t gyro;        /**< gyroscope values are in rad/s */
-    float temperature; /**< temperature is in degrees centigrade (Celsius) */
-    float distance;    /**< distance in centimeters */
-    float light;       /**< light in SI lux units */
-    float pressure;    /**< pressure in hectopascal (hPa) */
-    float relative_humidity; /**< relative humidity in percent */
-    float current;           /**< current in milliamps (mA) */
-    float voltage;           /**< voltage in volts (V) */
-    sensors_color_t color;   /**< color in RGB component values */
-  };                         ///< Union for the wide ranges of data we can carry
-} sensors_event_t;
 
 /* Sensor details (40 bytes) */
 /** struct sensor_s is used to describe basic information about a specific
@@ -175,7 +128,7 @@ public:
 
   /*! @brief Get the latest sensor event
       @returns True if able to fetch an event */
-  virtual bool getEvent(sensors_event_t *) = 0;
+  //virtual bool getEvent(sensors_event_t *) = 0;
   /*! @brief Get info about the sensor itself */
   virtual void getSensor(sensor_t *) = 0;
 
